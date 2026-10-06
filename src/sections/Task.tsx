@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import secureLocalStorage from "react-secure-storage";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import axios from "axios";
+import api from "../api/client";
 
 interface CustomJwtPayload extends JwtPayload {
   isProfileDone?: boolean;
@@ -59,14 +60,7 @@ const Task = () => {
         throw new Error("Authentication token not found");
       }
       
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/user/user/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get(`/user/user/${id}`);
       
       if (response.data) {
         // Store user details in secure local storage

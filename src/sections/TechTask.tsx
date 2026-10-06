@@ -116,7 +116,7 @@ const TechTask = ({ selectedSubDomain, setSelectedSubDomain }: Props) => {
             AI/ML
           </button>
           
-          
+          {!isSC && (
             <button
               type="button"
               onClick={() => setSelectedSubDomain("cp")}
@@ -124,7 +124,7 @@ const TechTask = ({ selectedSubDomain, setSelectedSubDomain }: Props) => {
             >
               CP
             </button>
-          
+          )}
         </div>
       )}
 

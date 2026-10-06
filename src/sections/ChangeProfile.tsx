@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { ToastContent } from "../components/CustomToast";
 import axios from "axios";
+import api from "../api/client";
 import Cookies from "js-cookie";
 import Navbar from "../components/Navbar";
 import BoundingBox from "../components/BoundingBox";
@@ -64,14 +65,7 @@ const ChangeProfile = () => {
         throw new Error("Authentication token not found");
       }
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/user/user/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get(`/user/user/${id}`);
 
       if (response.data) {
         // Store fetched user details in local storage
@@ -132,15 +126,7 @@ const ChangeProfile = () => {
 
       const formData = { domain };
 
-      const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/user/updateuserdomain/${id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.put(`/user/updateuserdomain/${id}`, formData);
 
       if (response.data) {
         // Update local storage with the new user details
@@ -205,15 +191,7 @@ const ChangeProfile = () => {
         return false;
       }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/auth/refresh`,
-        { refreshToken },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.post(`/auth/refresh`, { refreshToken });
 
       if (response.data && response.data.accessToken) {
         Cookies.set("jwtToken", response.data.accessToken);

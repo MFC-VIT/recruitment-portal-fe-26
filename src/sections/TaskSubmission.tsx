@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import TechTaskSubmission from "./TechTaskSubmission";
-import DesignTaskSubmission from "./DesignTaskSubmission";
-import ManagementTaskSubmission from "./ManagementTaskSubmission";
+import TaskForm from "./TaskForm";
 import secureLocalStorage from "react-secure-storage";
 import CustomToast from "../components/CustomToast";
 import { ToastContent } from "../components/CustomToast";
@@ -130,19 +128,25 @@ const TaskSubmission = () => {
         </div>
       )}
       {domains?.includes("tech") && selectedDomain === 0 && (
-        <TechTaskSubmission
+        <TaskForm
+          key="tech"
+          domain="tech"
           setOpenToast={setOpenToast}
           setToastContent={setToastContent}
         />
       )}
       {domains?.includes("design") && selectedDomain === 1 && (
-        <DesignTaskSubmission
+        <TaskForm
+          key="design"
+          domain="design"
           setOpenToast={setOpenToast}
           setToastContent={setToastContent}
         />
       )}
       {domains?.includes("management") && selectedDomain === 2 && (
-        <ManagementTaskSubmission
+        <TaskForm
+          key="management"
+          domain="management"
           setOpenToast={setOpenToast}
           setToastContent={setToastContent}
         />

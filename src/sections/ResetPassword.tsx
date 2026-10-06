@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "../api/client";
 import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 // import { toast } from "react-toastify";
@@ -46,10 +47,7 @@ const ResetPassword = () => {
       emailToken,
     };
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/auth/updatepassword`,
-        formData
-      );
+      const response = await api.post(`/auth/updatepassword`, formData);
       if (response.status === 200 || response.data) {
         setOpenToast(true);
         setToastContent({

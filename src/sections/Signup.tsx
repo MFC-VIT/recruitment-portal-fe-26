@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "../api/client";
 import Cookies from "js-cookie";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -104,10 +105,7 @@ const Signup: React.FC = () => {
     if (!isErrorValidation) {
       try {
         setMutex(true);
-        const response = await axios.post(
-          `${import.meta.env.VITE_BASE_URL}/auth/signup`,
-          formData
-        );
+        const response = await api.post(`/auth/signup`, formData);
         // console.log(response)
         if (response.data.token) {
           Cookies.set("jwtToken", response.data.token, { secure: true });

@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "../api/client";
 import Cookies from "js-cookie";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React, { useEffect, useState, useCallback } from "react";
@@ -57,10 +58,7 @@ const Landing = () => {
     if (!inputs) return;
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/auth/login`,
-        inputs
-      );
+      const response = await api.post(`/auth/login`, inputs);
       console.log(response);
       if (response.data.token) {
         Cookies.set("refreshToken",response.data.refreshToken,{secure:true})
@@ -99,12 +97,7 @@ const Landing = () => {
       const token = Cookies.get("jwtToken");
       if (!token) throw new Error("JWT token not found");
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/user/user/${userId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await api.get(`/user/user/${userId}`);
 
       secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
 

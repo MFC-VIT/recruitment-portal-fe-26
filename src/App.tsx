@@ -20,11 +20,15 @@ import {
   LoadingFallback,
 } from "./components/LazyComponents";
 
+import { KonamiEffect, KonamiProgressIndicator, useKonamiCode } from "./hooks/useKonamiCode";
 import { useCursorTrail, useClickEffect } from "./hooks/useCursorTrail";
 import { ScreenShakeProvider } from "./hooks/useScreenShake";
 import { initConsoleEasterEgg } from "./utils/consoleEasterEgg";
+import GithubCallback from "./sections/GithubCallback";
 
 function App() {
+  const { isActivated: konamiActivated, setIsActivated: setKonamiActivated, progress: konamiProgress } = useKonamiCode();
+  
   // Subtle cursor trail and click effects
   useCursorTrail(true);
   useClickEffect(true);
@@ -37,6 +41,13 @@ function App() {
     <ScreenShakeProvider>
       <BaseWrapper>
         <MainWrapper>
+          {/* Progress indicator shows when typing Konami code */}
+          <KonamiProgressIndicator progress={konamiProgress} />
+          
+          <KonamiEffect 
+            isActive={konamiActivated} 
+            onClose={() => setKonamiActivated(false)} 
+          />
 
           <Router>
             <Suspense fallback={<LoadingFallback />}>
@@ -48,6 +59,7 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute><LazyDashboard /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><LazyChangeProfile /></ProtectedRoute>} />
                 <Route path="/meeting" element={<ProtectedRoute><LazyMeeting /></ProtectedRoute>} />
+                <Route path="/github/callback" element={<ProtectedRoute><GithubCallback /></ProtectedRoute>} />
 
                 <Route path="/" element={<LazyLanding />} />
                 <Route path="/verifyotp/:id" element={<LazyVerifyOTP />} />

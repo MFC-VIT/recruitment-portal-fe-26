@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "../api/client";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import BoundingBox from "../components/BoundingBox";
@@ -39,10 +40,7 @@ const ForgotPassword = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/auth/requestPasswordReset`,
-        { email, regno }
-      );
+      const response = await api.post(`/auth/requestPasswordReset`, { email, regno });
 
       if (response.status === 200 || response.data) {
         setOpenToast(true);

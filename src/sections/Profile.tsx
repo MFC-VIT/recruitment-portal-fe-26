@@ -1,5 +1,6 @@
 import Input from "../components/Input";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import api from "../api/client";
 import Cookies from "js-cookie";
 import { useEffect, useState, useCallback } from "react";
 import CustomToast, { ToastContent } from "../components/CustomToast";
@@ -93,12 +94,7 @@ const useUserDetails = () => {
       if (!id) throw new Error("User ID not found");
 
       const token = getToken();
-      const { data } = await axios.get<UserDetails>(
-        `${API_BASE_URL}/user/user/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const { data } = await api.get<UserDetails>(`/user/user/${id}`);
       // console.log(data)
       secureLocalStorage.setItem("userDetails", JSON.stringify(data));
       return data;
@@ -166,13 +162,7 @@ const useProfileUpdate = () => {
         if (!id) throw new Error("User ID not found");
 
         const token = getToken();
-        const { data } = await axios.put(
-          `${API_BASE_URL}/user/updateuser/${id}`,
-          formData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const { data } = await api.put(`/user/updateuser/${id}`, formData);
         // console.log(data)
         return data;
       } catch (error) {
