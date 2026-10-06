@@ -12,6 +12,7 @@ import Input from "../components/Input";
 import PlayBtn from "../components/PlayBtn";
 import Scene3d from "../components/Scene3d";
 import GlitchText from "../components/GlitchText";
+import DinoGame from "../components/DinoGame";
 import { useCharacterAnimations } from "../context/CharAnimation";
 import { triggerScreenShake } from "../hooks/useScreenShake";
 import type { JwtPayload } from "jwt-decode";
@@ -23,6 +24,7 @@ const Landing = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const { isPlayButton } = useCharacterAnimations();
   const navigate = useNavigate();
@@ -128,14 +130,14 @@ const Landing = () => {
       )}
 
       <BoundingBox>
-        <div className="w-full h-full relative z-[100] flex lg:justify-between items-center flex-col lg:flex-row">
+        <div className="w-full h-full relative z-[100] flex lg:justify-between items-start flex-col lg:flex-row pt-4 lg:pt-8">
           <div className="heading text-center md:text-left flex flex-col items-center lg:items-start z-[100]">
             <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
-              <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-24 
-            ${isPlayButton ? 'text-3xl sm:text-4xl md:text-3xl lg:text-3xl lg:mt-[0.4375rem] ' : 'text-3xl sm:text-3xl md:text-3xl lg:text-[2.6rem] lg:mt-40'}`}>
+              <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-8 
+            ${isPlayButton ? 'text-3xl sm:text-4xl md:text-3xl lg:text-3xl lg:mt-[0.4375rem] ' : 'text-3xl sm:text-3xl md:text-3xl lg:text-[2.6rem] lg:mt-16'}`}>
                 {!isPlayButton ? (
                   <>
-                    <GlitchText className="lg:block mb-8">MOZILLA</GlitchText>
+                    <GlitchText className="lg:block mb-4">MOZILLA</GlitchText>
                     <GlitchText className="lg:block">FIREFOX</GlitchText>
                   </>
                 ) : (
@@ -143,7 +145,7 @@ const Landing = () => {
                 )}
               </h1>
 
-              <div className="text-light text-base md:text-xl sm:text-3xl lg:mt-4 block text-center  lg:text-left">
+              <div className="text-light text-base md:text-xl sm:text-3xl lg:mt-2 block text-center  lg:text-left">
                 IS RECRUITING
               </div>
             </div>
@@ -151,23 +153,25 @@ const Landing = () => {
               <div
                 className={
                   isPlayButton
-                    ? "text-prime text-base lg:text-2xl opacity-0 transition-opacity duration-1000 ease-in-out delay-200"
-                    : "text-prime text-base lg:text-2xl mt-10 opacity-100"
+                    ? "text-prime text-base lg:text-xl opacity-0 transition-opacity duration-1000 ease-in-out delay-200"
+                    : "text-prime text-base lg:text-xl mt-4 opacity-100"
                 }
               >
                   Want to play with Mr. Fox Jr?
               </div>
-              <div className="relative w-[95%] h-[55vh] pb-[15vh] flex items-center justify-center">
+              <div className="relative w-[95%] h-[22vh] flex items-center justify-center">
                 {!isPlayButton && <PlayBtn />}
                 {isPlayButton && <Scene3d />}
               </div>
             </div>
           </div>
 
-          <div className=" p-4 lg:p-8 mt-4 mb-4 md:mt-0 max-w-full max-h-full z-[100]">
+          <div className="p-4 lg:pt-0 lg:px-8 lg:pb-0 mt-4 mb-4 md:-mt-8 max-w-full max-h-full z-[100]">
             <form
-              className="form-container flex flex-col mt-4 lg:mt-0 gap-3 md:gap-6 w-full lg:w-[80%] xl:w-[400px] mx-auto shadow-lg rounded-lg"
+              className="form-container flex flex-col mt-4 lg:mt-0 gap-3 md:gap-4 w-full lg:w-[80%] xl:w-[400px] mx-auto shadow-lg rounded-lg"
               onSubmit={handleLogin}
+              onFocus={() => setIsKeyboardOpen(true)}
+              onBlur={() => setIsKeyboardOpen(false)}
             >
               <Input
                 label={"email"}
@@ -234,35 +238,13 @@ const Landing = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-0 w-full left-0">
-          <img
-            src="/background.png"
-            alt=""
-            className={isPlayButton ? "invert brightness-[40%] opacity-0 transition-opacity duration-1000 ease-in-out delay-200" : "hidden md:block absolute bottom-0 left-0 w-full invert brightness-[40%] "}
-          />
-          <div className="absolute bottom-0 w-full md:hidden">
-            <img
-              src="/empty-bg.png"
-              alt=""
-              className="w-[85%] mx-auto invert brightness-50 absolute bottom-8"
-            />
-            <img
-              src="/Dino.png"
-              alt=""
-              className="invert w-20 absolute bottom-10"
-            />
-            <img
-              src="/cacti.png"
-              alt=""
-              className="invert w-20 bottom-10 absolute right-20"
-            />
-            <img
-              src="/cacti.png"
-              alt=""
-              className="invert w-10 bottom-10 absolute right-16"
-            />
+        {!isKeyboardOpen && (
+          <div className="absolute -bottom-8 w-full left-0 z-[200]">
+            <div className={isPlayButton ? "opacity-0 transition-opacity duration-1000 ease-in-out delay-200 pointer-events-none" : "w-full mx-auto"}>
+              <DinoGame />
+            </div>
           </div>
-        </div>
+        )}
 
       </BoundingBox>
     </div>

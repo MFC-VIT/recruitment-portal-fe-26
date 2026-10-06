@@ -20,14 +20,11 @@ import {
   LoadingFallback,
 } from "./components/LazyComponents";
 
-import { KonamiEffect, KonamiProgressIndicator, useKonamiCode } from "./hooks/useKonamiCode";
 import { useCursorTrail, useClickEffect } from "./hooks/useCursorTrail";
 import { ScreenShakeProvider } from "./hooks/useScreenShake";
 import { initConsoleEasterEgg } from "./utils/consoleEasterEgg";
 
 function App() {
-  const { isActivated: konamiActivated, setIsActivated: setKonamiActivated, progress: konamiProgress } = useKonamiCode();
-  
   // Subtle cursor trail and click effects
   useCursorTrail(true);
   useClickEffect(true);
@@ -40,13 +37,6 @@ function App() {
     <ScreenShakeProvider>
       <BaseWrapper>
         <MainWrapper>
-          {/* Progress indicator shows when typing Konami code */}
-          <KonamiProgressIndicator progress={konamiProgress} />
-          
-          <KonamiEffect 
-            isActive={konamiActivated} 
-            onClose={() => setKonamiActivated(false)} 
-          />
 
           <Router>
             <Suspense fallback={<LoadingFallback />}>
