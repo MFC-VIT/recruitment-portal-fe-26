@@ -89,3 +89,32 @@ export const savePushSubscription = (sub: PushSubscriptionJSON) => api.post("/pu
 
 export const rescheduleInterview = (scheduletime: string) =>
   api.post("/api/meet/reschedule", { scheduletime }).then((r) => r.data);
+
+export interface DBTask {
+  key: string;
+  domain: string;
+  subdomain: string | null;
+  subdomainLabel: string | null;
+  audience: "all" | "junior" | "senior";
+  kind: "long" | "portfolio";
+  title: string;
+  prompt: string;
+  helper?: string;
+  resources?: string[];
+  order: number;
+  active: boolean;
+}
+
+export interface QuestionsResponse {
+  domain: string;
+  subdomains: { value: string; label: string }[];
+  questions: DBTask[];
+}
+
+export const getTasksForDomain = (domain: Domain) =>
+  api.get<{ data: QuestionsResponse } | QuestionsResponse>(`/questions/${domain}`).then((r) => {
+    // Response wrapper handles both Response model wrapped and raw object
+    const data = "data" in r.data && r.data.data ? r.data.data : (r.data as QuestionsResponse);
+    return data;
+  });
+
