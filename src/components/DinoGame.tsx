@@ -2,10 +2,16 @@
 import React, { useRef, useState } from 'react';
 import useGameEngine from '../hooks/useGameEngine';
 
-const DinoGame = () => {
+const DinoGame = ({ onFocusChange }) => {
   const canvasRef    = useRef(null);
   const containerRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
+
+  // Notify parent of focus changes
+  const handleFocus = (focused) => {
+    setIsFocused(focused);
+    if (onFocusChange) onFocusChange(focused);
+  };
 
   // Engine hook: handles asset loading + draws idle preview on canvas
   const { assetsLoaded, loadError } = useGameEngine(canvasRef, isFocused);
@@ -30,18 +36,24 @@ const DinoGame = () => {
 
   const handleTouch = (e) => {
     e.preventDefault(); // Prevent accidental mobile zooming/scrolling
-    // Manually focus the container since preventDefault() suppresses the
-    // browser's automatic focus, which would leave the overlay stuck.
     if (containerRef.current) containerRef.current.focus();
     window.dispatchEvent(new CustomEvent('dinoJump'));
   };
 
   return (
     <div
+      style={{
+        width: '100%',
+        transformOrigin: 'bottom center',
+        transform: isFocused ? 'scale(1)' : 'scale(0.7)',
+        transition: 'transform 0.3s ease',
+      }}
+    >
+    <div
       ref={containerRef}
       tabIndex="0"
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
+      onFocus={() => handleFocus(true)}
+      onBlur={() => handleFocus(false)}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onTouchStart={handleTouch}
@@ -123,6 +135,7 @@ const DinoGame = () => {
           imageRendering: 'pixelated'
         }} 
       />
+    </div>
     </div>
   );
 };
