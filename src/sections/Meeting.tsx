@@ -71,23 +71,39 @@ const Meeting = () => {
     return `${formattedDate}, ${formattedTime}`;
   };
 
+  const [statusLoaded, setStatusLoaded] = useState(false);
+
   useEffect(() => {
     const id = secureLocalStorage.getItem("id");
     if (!id) {
-      console.error("User id not found in secureLocalStorage");
+      navigate("/dashboard", { replace: true });
       return;
     }
 
     const fetchPassed = (domain: string) =>
       api
         .get(`/applicatiostatus/status${domain}/${id}`)
-        .then((response) => response.data?.passed)
-        .catch((error) => console.error(error));
+        .then((response) => Boolean(response.data?.passed))
+        .catch((error) => {
+          console.error(error);
+          return false;
+        });
 
-    fetchPassed("tech").then(setStatusTech);
-    fetchPassed("design").then(setStatusDesign);
-    fetchPassed("management").then(setStatusManagement);
-  }, []);
+    Promise.all([
+      fetchPassed("tech"),
+      fetchPassed("design"),
+      fetchPassed("management"),
+    ]).then(([tech, design, management]) => {
+      if (!tech && !design && !management) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+      setStatusTech(tech);
+      setStatusDesign(design);
+      setStatusManagement(management);
+      setStatusLoaded(true);
+    });
+  }, [navigate]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -305,6 +321,8 @@ const handleMeeting = async (e: React.MouseEvent<HTMLButtonElement>) => {
     }
   }
 
+  if (!statusLoaded) return null;
+  
   return (
     <div className="w-full min-h-screen h-full flex flex-col md:flex-row justify-center items-center pt-0 px-4 overflow-auto">
       <Navbar />
