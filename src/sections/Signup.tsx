@@ -41,7 +41,7 @@ const Signup: React.FC = () => {
     }
 
     // Validate registration number
-    const registerNumberRegex = /^(23|24|25)[BM][A-Z]{2}\d{4}$/;
+    const registerNumberRegex = /^(23|24|25|26)[BM][A-Z]{2}\d{4}$/;
     if (!regno) {
       errors.registerNumber = "Register number is required";
       hasError = true;

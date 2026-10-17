@@ -97,7 +97,7 @@ const TechTask = ({ selectedSubDomain, setSelectedSubDomain }: Props) => {
           { value: "cyber-sec", label: "Cyber Security" },
           { value: "app", label: "App Dev" },
           { value: "ml", label: "AI/ML" },
-          ...(!isSC ? [{ value: "cp", label: "CP" }] : []),
+          { value: "cp", label: "CP" },
         ];
 
   if (loading && tasks.length === 0) {
@@ -117,7 +117,6 @@ const TechTask = ({ selectedSubDomain, setSelectedSubDomain }: Props) => {
       {selectedSubDomain === "" && (
         <div className="flex justify-center flex-wrap w-full gap-2 md:gap-3">
           {availableSubdomains.map((sd) => {
-            if (isSC && sd.value === "cp") return null;
             return (
               <button
                 key={sd.value}

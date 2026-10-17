@@ -14,6 +14,7 @@ import PlayBtn from "../components/PlayBtn";
 import Scene3d from "../components/Scene3d";
 import GlitchText from "../components/GlitchText";
 import DinoGame from "../components/DinoGame";
+import useIsDesktop from "../hooks/useIsDesktop";
 import { useCharacterAnimations } from "../context/CharAnimation";
 import { triggerScreenShake } from "../hooks/useScreenShake";
 import type { JwtPayload } from "jwt-decode";
@@ -27,6 +28,8 @@ const Landing = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isGameExpanded, setIsGameExpanded] = useState(false);
+  // The dino game is desktop-only; phones and tablets never load it.
+  const isDesktop = useIsDesktop();
 
   const { isPlayButton } = useCharacterAnimations();
   const navigate = useNavigate();
@@ -125,7 +128,7 @@ const Landing = () => {
 
       <BoundingBox>
         <div 
-          className={`w-full h-full relative z-[100] flex lg:justify-between items-start flex-col lg:flex-row pt-4 lg:pt-8 pb-24 lg:pb-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${isGameExpanded ? 'lg:translate-y-0' : 'lg:translate-y-[100px]'}`}
+          className={`w-full h-full relative z-[100] flex lg:justify-between items-start flex-col lg:flex-row pt-4 lg:pt-8 pb-24 lg:pb-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${isDesktop ? (isGameExpanded ? 'lg:translate-y-0' : 'lg:translate-y-[100px]') : ''}`}
         >
           <div className="heading w-full lg:w-auto text-center lg:text-left flex flex-col items-center lg:items-start z-[100]">
             <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
@@ -236,7 +239,7 @@ const Landing = () => {
           </div>
         </div>
 
-        {!isKeyboardOpen && (
+        {isDesktop && !isKeyboardOpen && (
           <div className="absolute -bottom-8 w-full left-0 z-[200] pointer-events-none">
             <div className={`pointer-events-auto ${isPlayButton ? "opacity-0 transition-opacity duration-1000 ease-in-out delay-200" : "w-full mx-auto"}`}>
               <DinoGame onFocusChange={setIsGameExpanded} />

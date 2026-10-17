@@ -163,12 +163,17 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
             {q.title || q.prompt}
           </label>
         )}
+        {!big && q.title && q.prompt && (
+          <p className="whitespace-pre-line text-xs text-gray-200 mb-3 leading-relaxed">
+            {q.prompt}
+          </p>
+        )}
         {!big && q.helper && (
           <p className="whitespace-pre-line text-xs text-gray-300 mb-3 leading-relaxed">
             {q.helper}
           </p>
         )}
-        {q.kind === "portfolio" && domain === "tech" && (
+        {domain === "tech" && (q.kind === "portfolio" || (q.title && q.subdomain !== "cp")) && (
           <div className="flex justify-end mb-2">
             <RepoPicker onPick={(repo) => importRepo(q.key, repo)} />
           </div>
@@ -178,7 +183,15 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
           className={`nes-textarea is-dark ${big ? "min-h-[15rem]" : "min-h-[5rem]"}`}
           value={value}
           onChange={(e) => setAnswer(q.key, e.target.value)}
-          placeholder="Write here..."
+          placeholder={
+            big
+              ? "Write here..."
+              : q.title
+                ? domain === "tech"
+                  ? "Describe your approach and paste your GitHub link here..."
+                  : "Write your answer and paste your work link here..."
+                : "Write here..."
+          }
           aria-invalid={!!fieldErrors[q.key]}
         />
         <div className="flex justify-between text-xs mt-1">
