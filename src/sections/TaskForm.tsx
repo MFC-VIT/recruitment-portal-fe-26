@@ -118,10 +118,22 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
       toast("Please select at least one subdomain!", "warning");
       return;
     }
-    const missing = visible.filter((q) => !answers[q.key]?.trim());
-    if (missing.length > 0) {
-      setFieldErrors(Object.fromEntries(missing.map((q) => [q.key, "This question needs an answer."])));
-      toast("Please answer every question before submitting.", "warning");
+    // Titled questions are tasks: one answered task per picked subdomain is
+    // enough. The general questions all need an answer.
+    const isTask = (q: Question) => Boolean(q.title && q.subdomain);
+    const missing: Record<string, string> = {};
+    for (const q of visible) {
+      if (!isTask(q) && !answers[q.key]?.trim()) missing[q.key] = "This question needs an answer.";
+    }
+    for (const sub of subdomain) {
+      const tasks = visible.filter((q) => isTask(q) && q.subdomain === sub);
+      if (tasks.length > 0 && !tasks.some((q) => answers[q.key]?.trim())) {
+        missing[tasks[0].key] = "Complete at least one task for this subdomain.";
+      }
+    }
+    if (Object.keys(missing).length > 0) {
+      setFieldErrors(missing);
+      toast("Answer the general questions and at least one task per subdomain.", "warning");
       return;
     }
 
@@ -276,6 +288,11 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
           <span className="text-prime">
             Answer some general questions: (Choose a subdomain in order to procure your questions)
           </span>
+          {perSubdomain.some((q) => q.title && q.subdomain) && (
+            <p className="mt-2 text-xs text-gray-300">
+              Complete at least one task for each subdomain you picked. More is welcome, not required.
+            </p>
+          )}
           {perSubdomain.map((q) => renderQuestion(q, false))}
         </section>
 
