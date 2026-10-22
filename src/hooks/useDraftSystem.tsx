@@ -35,14 +35,17 @@ interface DraftSystemReturn {
   discardDraft: () => void;
 }
 
-const SYNC_DELAY = 2000;
+// Edits are saved locally on every keystroke; the server gets one batched write
+// per interval (jittered so a whole hostel doesn't sync on the same second).
+const SYNC_INTERVAL = 30000;
+const SYNC_JITTER = 10000;
 const BROADCAST_CHANNEL_NAME = "mfc_draft_sync";
 
 const hasContent = (d: { answers: Answers; subdomain: string[] }) =>
   Object.values(d.answers).some((v) => v.trim()) || d.subdomain.length > 0;
 
 // Keeps a task draft in three places: localStorage (instant, survives
-// refresh), other open tabs (BroadcastChannel) and the server (PATCH, debounced,
+// refresh), other open tabs (BroadcastChannel) and the server (PATCH, batched,
 // queued while offline). Only the explicit submit ever POSTs.
 export const useDraftSystem = ({
   draftKey,
@@ -60,6 +63,8 @@ export const useDraftSystem = ({
 
   const syncTimerRef = useRef<number | null>(null);
   const queuedRef = useRef<DraftData | null>(null);
+  const pendingRef = useRef<DraftData | null>(null);
+  const lastSyncedRef = useRef("");
   const channelRef = useRef<BroadcastChannel | null>(null);
   const versionRef = useRef(0);
   const tabIdRef = useRef(Math.random().toString(36).slice(2));
@@ -68,12 +73,15 @@ export const useDraftSystem = ({
   const syncToServer = useCallback(
     async (draft: DraftData): Promise<boolean> => {
       if (!userId) return false;
+      const fingerprint = JSON.stringify([draft.subdomain, draft.answers]);
+      if (fingerprint === lastSyncedRef.current) return true;
       try {
         setIsSyncing(true);
         await api.patch(`/upload/${domain}/${userId}`, {
           subdomain: draft.subdomain,
           answers: draft.answers,
         });
+        lastSyncedRef.current = fingerprint;
         return true;
       } catch (err) {
         console.error("Draft sync failed:", err);
@@ -84,6 +92,17 @@ export const useDraftSystem = ({
     },
     [userId, domain]
   );
+
+  const flushPending = useCallback(async () => {
+    const draft = pendingRef.current;
+    if (!draft) return;
+    pendingRef.current = null;
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
+    if (!navigator.onLine || !(await syncToServer(draft))) queuedRef.current = draft;
+  }, [syncToServer]);
 
   // Load: a local draft wins (ask first), otherwise take the server copy.
   useEffect(() => {
@@ -117,6 +136,7 @@ export const useDraftSystem = ({
       }
       if (remote) {
         serverCopyRef.current = { answers: remote.answers ?? {}, subdomain: remote.subdomain ?? [] };
+        lastSyncedRef.current = JSON.stringify([serverCopyRef.current.subdomain, serverCopyRef.current.answers]);
       }
       if (local && hasContent(local)) {
         setPendingDraft(local);
@@ -134,7 +154,7 @@ export const useDraftSystem = ({
     };
   }, [draftKey, userId, domain]);
 
-  // Every edit: save locally, tell other tabs, debounce a server sync.
+  // Every edit: save locally, tell other tabs, queue a batched server sync.
   useEffect(() => {
     if (!isDraftLoaded || isSubmitted || !draftKey) return;
 
@@ -153,15 +173,28 @@ export const useDraftSystem = ({
     }
     channelRef.current?.postMessage({ draftKey, draft, tabId: tabIdRef.current });
 
-    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    syncTimerRef.current = window.setTimeout(async () => {
-      if (!navigator.onLine || !(await syncToServer(draft))) queuedRef.current = draft;
-    }, SYNC_DELAY);
+    // Batch: remember the latest draft and write it when the interval fires,
+    // instead of writing after every pause in typing.
+    pendingRef.current = draft;
+    if (!syncTimerRef.current) {
+      syncTimerRef.current = window.setTimeout(() => {
+        syncTimerRef.current = null;
+        void flushPending();
+      }, SYNC_INTERVAL + Math.random() * SYNC_JITTER);
+    }
+  }, [answers, subdomain, isDraftLoaded, isSubmitted, draftKey, userId, flushPending]);
 
-    return () => {
-      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+  // Don't strand edits when the tab is hidden or the form unmounts.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flushPending();
     };
-  }, [answers, subdomain, isDraftLoaded, isSubmitted, draftKey, userId, syncToServer]);
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      void flushPending();
+    };
+  }, [flushPending]);
 
   // Offline handling: only the latest queued draft matters.
   useEffect(() => {
@@ -222,6 +255,8 @@ export const useDraftSystem = ({
   const clearDraft = useCallback(() => {
     localStorage.removeItem(draftKey);
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = null;
+    pendingRef.current = null;
     queuedRef.current = null;
   }, [draftKey]);
 
