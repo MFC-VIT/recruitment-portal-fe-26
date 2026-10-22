@@ -103,6 +103,13 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
     setAnswer(key, current ? `${current}\n${line}` : line);
   };
 
+  const markSubmitted = () => {
+    draft.clearDraft();
+    draft.setIsSubmitted(true);
+    secureLocalStorage.setItem(`${DOMAIN_LABEL[domain]}Sub`, true);
+    toast("Task Submitted Successfully!", "success");
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (submitting || !id) return;
@@ -121,17 +128,28 @@ const TaskForm = ({ domain, setOpenToast, setToastContent }: Props) => {
     try {
       setSubmitting(true);
       await api.post(`/upload/${domain}/${id}`, { subdomain, answers }, { timeout: 20000 });
-      draft.clearDraft();
-      draft.setIsSubmitted(true);
-      secureLocalStorage.setItem(`${DOMAIN_LABEL[domain]}Sub`, true);
-      toast("Task Submitted Successfully!", "success");
+      markSubmitted();
     } catch (error) {
+      // A timeout or gateway error can happen after the server saved the
+      // submission, so ask before telling the candidate it failed.
+      const noReply = !axios.isAxiosError(error) || !error.response || error.response.status >= 500;
+      if (noReply) {
+        try {
+          const saved = await api.get(`/upload/${domain}/${id}`, { timeout: 10000 });
+          if (saved.data?.data?.isDone) {
+            markSubmitted();
+            return;
+          }
+        } catch {
+          // fall through to the error toast
+        }
+      }
       const errors = axios.isAxiosError(error) ? error.response?.data?.data?.errors : null;
       if (Array.isArray(errors)) {
         setFieldErrors(Object.fromEntries(errors.map((er: { key: string; error: string }) => [er.key, er.error])));
       }
       const message = axios.isAxiosError(error) ? error.response?.data?.message : null;
-      toast(message || "Failed to submit task. Please try again or contact support.", "error");
+      toast(message || "Could not reach the server. Your answers are saved as a draft, so wait a minute and press Submit again.", "error");
     } finally {
       setSubmitting(false);
     }
